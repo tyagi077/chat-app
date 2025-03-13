@@ -3,7 +3,7 @@ import { VisibleContext } from "../context/VisibleContext";
 import { SendMessage } from "./SendMessage";
 import { ReceiveMessage } from "./ReceiveMessage";
 import { toast } from "react-toastify";
-
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 export const Chat = () => {
     const context = useContext(VisibleContext);
@@ -16,13 +16,18 @@ export const Chat = () => {
     const [inputMessage, setInputMessage] = useState("");
     const [socket, setSocket] = useState<WebSocket | null>(null);
 
+    const [showPicker, setShowPicker] = useState(false);
+  
+    const handleEmojiClick = (emojiData: EmojiClickData) => {
+        setInputMessage((prev) => prev + emojiData.emoji); // Append emoji to text
+    };
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // Generate or retrieve a persistent user ID
     const [currentUserId] = useState(() => {
         let storedId = localStorage.getItem("c_token");
         if (!storedId) {
@@ -37,7 +42,7 @@ export const Chat = () => {
 
         ws.onopen = () => {
             console.log("WebSocket connected");
-            toast.success("connected")
+            toast.success("Connected");
             setSocket(ws);
             ws.send(
                 JSON.stringify({
@@ -48,10 +53,8 @@ export const Chat = () => {
         };
 
         ws.onmessage = (event) => {
-
             try {
                 const receivedMessage = JSON.parse(event.data);
-
                 if (receivedMessage.type === "chat") {
                     setMessages((prevMessages) => [
                         ...prevMessages,
@@ -77,7 +80,7 @@ export const Chat = () => {
             ws.onclose = null;
             ws.close();
         };
-    }, [roomId, currentUserId]); // Include `currentUserId` as a dependency
+    }, [roomId, currentUserId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputMessage(e.target.value);
@@ -85,6 +88,7 @@ export const Chat = () => {
 
     const handleClick = (e: FormEvent) => {
         e.preventDefault();
+        setShowPicker(false)
         if (inputMessage.trim() !== "" && socket) {
             const message = inputMessage.trim();
             socket.send(
@@ -103,21 +107,26 @@ export const Chat = () => {
         }
     };
 
-
+    const handleEmoji=()=>{
+        setShowPicker((prev) => !prev)
+    }
 
     return (
-        <div className="w-full max-w-120 mt-5">
-            {socket?'':
-                <div className="flex items-center gap-2 absolute top-6 right-6 z-2">
+        <div className="w-full max-w-120 mt-5 relative">
+            {/* WebSocket Connecting Indicator */}
+            {!socket && (
+                <div className="flex items-center gap-2 fixed top-6 right-6 z-50">
                     <div>Connecting</div>
                     <div className="w-2 h-2 bg-red-300 animate-spin"></div>
                 </div>
-            }
+            )}
 
+            {/* Room ID Display */}
             <div className="border border-gray-100 text-center text-xl py-3 rounded-sm">
                 <span>Room ID: </span><span className="text-blue-600">{roomId}</span>
             </div>
 
+            {/* Chat Messages Container */}
             <div className="rounded-sm border border-gray-100 overflow-y-scroll text-xl py-3 mt-5 h-90">
                 {messages.map((message, index) =>
                     message.clientSent ? (
@@ -129,32 +138,48 @@ export const Chat = () => {
                 <div ref={messagesEndRef}></div>
             </div>
 
-            <div className="mt-4 w-full ">
-                <form onSubmit={(e) => handleClick(e)} className=" w-full px-2 ">
-                    <div className="w-full flex items-center gap-4">
-                        <textarea
-                            value={inputMessage}
-                            onChange={handleChange}
-                            placeholder="Type your message..."
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                    handleClick(e);
-                                }
-                            }}
-                            rows={1}
-                            className="bg-white text-black w-full h-auto max-h-[70px] overflow-y-auto py-3   rounded-md px-3 focus:outline-none resize-none"
-                        />
+            {/* Chat Input Box */}
+            <div className="mt-4 w-full px-2 relative">
+                <form onSubmit={(e) => handleClick(e)} className="w-full flex items-center gap-4">
+                    {/* Emoji Picker Button */}
+                    <button 
+                        type="button"
+                        className="p-2 border cursor-pointer rounded bg-gray-100 relative"
+                        onClick={handleEmoji}
+                       
+                    >
+                        😀
+                    </button>
 
-                        <div className="bg-blue-400 flex justify-center items-center gap-3 h-10 rounded-md font-medium cursor-pointer px-3">
-                            <button className="cursor-pointer" type="submit">Send</button>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                            </svg>
+                    {/* Emoji Picker */}
+                    {showPicker && (
+                        <div className="absolute bottom-1 -left-100 z-50">
+                            <EmojiPicker onEmojiClick={handleEmojiClick} />
                         </div>
+                    )}
+
+                    {/* Message Input */}
+                    <textarea
+                        value={inputMessage}
+                        onChange={handleChange}
+                        placeholder="Type your message..."
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                handleClick(e);
+                            }
+                        }}
+                        rows={1}
+                        className="bg-white text-black w-full h-auto max-h-[70px] overflow-y-auto py-3 rounded-md px-3 focus:outline-none resize-none"
+                    />
+
+                    {/* Send Button */}
+                    <div className="bg-blue-400 flex justify-center items-center gap-3 h-10 rounded-md font-medium cursor-pointer px-3">
+                        <button className="cursor-pointer" type="submit">Send</button>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                        </svg>
                     </div>
-
                 </form>
-
             </div>
         </div>
     );
