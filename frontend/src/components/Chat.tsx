@@ -110,9 +110,11 @@ export const Chat = () => {
     const handleEmoji=()=>{
         setShowPicker((prev) => !prev)
     }
+   
 
     return (
         <div className="w-full max-w-120 mt-5 relative">
+            <div className="text-red-600">{roomId?'':"You left rejoin"}</div>
             {/* WebSocket Connecting Indicator */}
             {!socket && (
                 <div className="flex items-center gap-2 fixed top-6 right-6 z-50">
