@@ -4,7 +4,6 @@ import { SendMessage } from "./SendMessage";
 import { ReceiveMessage } from "./ReceiveMessage";
 import { toast } from "react-toastify";
 
-const apiUrl = import.meta.env.VITE_API_URL;
 
 export const Chat = () => {
     const context = useContext(VisibleContext);
@@ -34,7 +33,7 @@ export const Chat = () => {
     });
 
     useEffect(() => {
-        const ws = new WebSocket(apiUrl); // Ensure the correct port
+        const ws = new WebSocket("wss://chat-app-q2gu.onrender.com"); 
 
         ws.onopen = () => {
             console.log("WebSocket connected");
