@@ -4,6 +4,8 @@ import { SendMessage } from "./SendMessage";
 import { ReceiveMessage } from "./ReceiveMessage";
 import { toast } from "react-toastify";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 export const Chat = () => {
     const context = useContext(VisibleContext);
     if (!context) {
@@ -32,7 +34,7 @@ export const Chat = () => {
     });
 
     useEffect(() => {
-        const ws = new WebSocket("ws://localhost:8060"); // Ensure the correct port
+        const ws = new WebSocket(apiUrl); // Ensure the correct port
 
         ws.onopen = () => {
             console.log("WebSocket connected");
