@@ -33,11 +33,11 @@ export const Chat = () => {
     });
 
     useEffect(() => {
-        const ws = new WebSocket("wss://chat-app-q2gu.onrender.com"); 
+        const ws = new WebSocket("wss://chat-app-q2gu.onrender.com");
 
         ws.onopen = () => {
             console.log("WebSocket connected");
-            toast.success("connected")
+             toast.success("connected")
             setSocket(ws);
             ws.send(
                 JSON.stringify({
@@ -103,8 +103,18 @@ export const Chat = () => {
         }
     };
 
+
+
     return (
         <div className="w-full max-w-120 mt-5">
+           {socket?'': <div className="flex items-center gap-2 absolute top-10 left-[1250px] z-2">
+                <div className="">
+                    Connecting
+                </div>
+                <div className="w-2 h-2 bg-red-300 animate-spin">
+                </div>
+
+            </div>}
             <div className="border border-gray-100 text-center text-xl py-3 rounded-sm">
                 <span>Room ID: </span><span className="text-blue-600">{roomId}</span>
             </div>
@@ -117,7 +127,7 @@ export const Chat = () => {
                         <ReceiveMessage key={index} message={message.message} />
                     )
                 )}
-                 <div ref={messagesEndRef}></div>
+                <div ref={messagesEndRef}></div>
             </div>
 
             <div className="mt-4 w-full ">

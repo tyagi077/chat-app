@@ -21,7 +21,8 @@ export const Main=()=>{
             setUserId(currentUserId);
         
         if(inputValue!=""){
-            setRoomId(inputValue)
+
+            setRoomId(inputValue.toUpperCase())
             navigate("/startchat")
         }
     }
